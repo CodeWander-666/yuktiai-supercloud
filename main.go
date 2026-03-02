@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	bootstrapURL = "https://your-domain.com/bootstrap.json" // Replace with your actual URL
+	bootstrapURL = "http://yukti-ai-supercloud.free.nf/bootstrap/bootstrap.json" // Replace with your actual URL
 	serviceTopic = "supercloud-services"
 	jobTopic     = "supercloud-jobs"
 	keyFile      = "node.key"
