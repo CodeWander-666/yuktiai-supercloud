@@ -25,11 +25,7 @@ import (
 )
 
 const (
-<<<<<<< HEAD
 	bootstrapURL = "https://your-domain.com/bootstrap.json" // Replace with your actual URL
-=======
-	bootstrapURL = "https://your-site.infinityfreeapp.com/bootstrap.json"
->>>>>>> dd2415e73e5709cd1d39d7e9d747bf898b18e39d
 	serviceTopic = "supercloud-services"
 	jobTopic     = "supercloud-jobs"
 	keyFile      = "node.key"
@@ -40,13 +36,8 @@ type Node struct {
 	dht      *dht.IpfsDHT
 	ps       *pubsub.PubSub
 	peerID   peer.ID
-<<<<<<< HEAD
 	services map[string]string
 	jobs     map[string]string
-=======
-	services map[string]string // service ID -> manifest URL
-	jobs     map[string]string // job ID -> result (in-memory)
->>>>>>> dd2415e73e5709cd1d39d7e9d747bf898b18e39d
 	ctx      context.Context
 	cancel   context.CancelFunc
 }
@@ -90,17 +81,10 @@ func main() {
 	// Start service discovery
 	node.startDiscovery()
 
-<<<<<<< HEAD
 	// Start web dashboard
 	go node.startDashboard(":8080")
 
 	// Wait for shutdown
-=======
-	// Start HTTP API for local status (optional)
-	go node.startHTTPAPI(":8080")
-
-	// Handle shutdown
->>>>>>> dd2415e73e5709cd1d39d7e9d747bf898b18e39d
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 	<-ch
@@ -108,11 +92,6 @@ func main() {
 	node.host.Close()
 }
 
-<<<<<<< HEAD
-// loadIdentity loads or generates an Ed25519 key
-=======
-// loadIdentity loads or generates a Ed25519 key
->>>>>>> dd2415e73e5709cd1d39d7e9d747bf898b18e39d
 func (n *Node) loadIdentity() error {
 	if data, err := os.ReadFile(keyFile); err == nil {
 		priv, err := crypto.UnmarshalPrivateKey(data)
@@ -130,24 +109,14 @@ func (n *Node) loadIdentity() error {
 	if err != nil {
 		return err
 	}
-<<<<<<< HEAD
 	if err := os.WriteFile(keyFile, data, 0600); err != nil {
 		return err
 	}
-=======
-	os.WriteFile(keyFile, data, 0600)
->>>>>>> dd2415e73e5709cd1d39d7e9d747bf898b18e39d
 	n.host, _ = libp2p.New(libp2p.Identity(priv))
 	return nil
 }
 
-<<<<<<< HEAD
-// setupHost creates the libp2p host
 func (n *Node) setupHost() error {
-=======
-func (n *Node) setupHost() error {
-	// Simple host with default transports
->>>>>>> dd2415e73e5709cd1d39d7e9d747bf898b18e39d
 	h, err := libp2p.New(
 		libp2p.ListenAddrStrings(
 			"/ip4/0.0.0.0/tcp/0",
@@ -166,13 +135,7 @@ func (n *Node) setupHost() error {
 	return nil
 }
 
-<<<<<<< HEAD
-// setupDHT creates a Kademlia DHT
 func (n *Node) setupDHT() error {
-=======
-func (n *Node) setupDHT() error {
-	// Create a DHT instance with the host
->>>>>>> dd2415e73e5709cd1d39d7e9d747bf898b18e39d
 	kadDHT, err := dht.New(n.ctx, n.host)
 	if err != nil {
 		return err
@@ -181,10 +144,6 @@ func (n *Node) setupDHT() error {
 	return nil
 }
 
-<<<<<<< HEAD
-// setupPubSub creates GossipSub
-=======
->>>>>>> dd2415e73e5709cd1d39d7e9d747bf898b18e39d
 func (n *Node) setupPubSub() error {
 	ps, err := pubsub.NewGossipSub(n.ctx, n.host)
 	if err != nil {
@@ -192,10 +151,6 @@ func (n *Node) setupPubSub() error {
 	}
 	n.ps = ps
 
-<<<<<<< HEAD
-=======
-	// Subscribe to service and job topics
->>>>>>> dd2415e73e5709cd1d39d7e9d747bf898b18e39d
 	subService, err := ps.Subscribe(serviceTopic)
 	if err != nil {
 		return err
@@ -211,13 +166,7 @@ func (n *Node) setupPubSub() error {
 	return nil
 }
 
-<<<<<<< HEAD
-// bootstrap connects to known bootstrap peers from remote URL
 func (n *Node) bootstrap() error {
-=======
-func (n *Node) bootstrap() error {
-	// Fetch bootstrap peers from remote URL
->>>>>>> dd2415e73e5709cd1d39d7e9d747bf898b18e39d
 	peers, err := fetchBootstrapPeers(bootstrapURL)
 	if err != nil {
 		return err
@@ -236,10 +185,6 @@ func (n *Node) bootstrap() error {
 	return n.dht.Bootstrap(n.ctx)
 }
 
-<<<<<<< HEAD
-// fetchBootstrapPeers downloads and parses the bootstrap list
-=======
->>>>>>> dd2415e73e5709cd1d39d7e9d747bf898b18e39d
 func fetchBootstrapPeers(url string) ([]peer.AddrInfo, error) {
 	resp, err := http.Get(url)
 	if err != nil {
@@ -265,20 +210,10 @@ func fetchBootstrapPeers(url string) ([]peer.AddrInfo, error) {
 	return peers, nil
 }
 
-<<<<<<< HEAD
-// startDiscovery advertises this node and discovers others
 func (n *Node) startDiscovery() {
 	routingDiscovery := routing.NewRoutingDiscovery(n.dht)
 	util.Advertise(n.ctx, routingDiscovery, "supercloud-nodes")
 
-=======
-func (n *Node) startDiscovery() {
-	// Advertise ourselves in the DHT
-	routingDiscovery := routing.NewRoutingDiscovery(n.dht)
-	util.Advertise(n.ctx, routingDiscovery, "supercloud-nodes")
-
-	// Continuously find peers
->>>>>>> dd2415e73e5709cd1d39d7e9d747bf898b18e39d
 	go func() {
 		for {
 			peerChan, err := routingDiscovery.FindPeers(n.ctx, "supercloud-nodes")
@@ -303,10 +238,6 @@ func (n *Node) startDiscovery() {
 	}()
 }
 
-<<<<<<< HEAD
-// handleServiceMessages listens for new services
-=======
->>>>>>> dd2415e73e5709cd1d39d7e9d747bf898b18e39d
 func (n *Node) handleServiceMessages(sub *pubsub.Subscription) {
 	for {
 		msg, err := sub.Next(n.ctx)
@@ -315,11 +246,7 @@ func (n *Node) handleServiceMessages(sub *pubsub.Subscription) {
 			return
 		}
 		var svc struct {
-<<<<<<< HEAD
 			ID       string `json:"id"`
-=======
-			ID     string `json:"id"`
->>>>>>> dd2415e73e5709cd1d39d7e9d747bf898b18e39d
 			Manifest string `json:"manifest"`
 		}
 		if err := json.Unmarshal(msg.Data, &svc); err != nil {
@@ -330,10 +257,6 @@ func (n *Node) handleServiceMessages(sub *pubsub.Subscription) {
 	}
 }
 
-<<<<<<< HEAD
-// handleJobMessages listens for jobs and processes them
-=======
->>>>>>> dd2415e73e5709cd1d39d7e9d747bf898b18e39d
 func (n *Node) handleJobMessages(sub *pubsub.Subscription) {
 	for {
 		msg, err := sub.Next(n.ctx)
@@ -349,14 +272,11 @@ func (n *Node) handleJobMessages(sub *pubsub.Subscription) {
 		if err := json.Unmarshal(msg.Data, &job); err != nil {
 			continue
 		}
-<<<<<<< HEAD
-		// For simplicity, every node processes every job (deduplication can be added later)
 		log.Printf("processing job %s", job.ID)
-		time.Sleep(2 * time.Second) // simulate inference
+		time.Sleep(2 * time.Second)
 		result := fmt.Sprintf("Result for: %s", job.Prompt)
 		n.jobs[job.ID] = result
 
-		// Publish result
 		resMsg, _ := json.Marshal(map[string]string{
 			"id":     job.ID,
 			"result": result,
@@ -365,7 +285,6 @@ func (n *Node) handleJobMessages(sub *pubsub.Subscription) {
 	}
 }
 
-// startDashboard serves a simple web UI
 func (n *Node) startDashboard(addr string) {
 	http.HandleFunc("/", n.dashboardHandler)
 	http.HandleFunc("/status", n.statusHandler)
@@ -373,7 +292,6 @@ func (n *Node) startDashboard(addr string) {
 	log.Fatal(http.ListenAndServe(addr, nil))
 }
 
-// dashboardHandler renders the HTML dashboard
 func (n *Node) dashboardHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	tmpl := `
@@ -438,7 +356,6 @@ func (n *Node) dashboardHandler(w http.ResponseWriter, r *http.Request) {
 	t.Execute(w, data)
 }
 
-// statusHandler returns JSON for monitoring
 func (n *Node) statusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -448,43 +365,3 @@ func (n *Node) statusHandler(w http.ResponseWriter, r *http.Request) {
 		"jobs":      n.jobs,
 	})
 }
-=======
-		// Only process jobs assigned to us (simple hash modulo)
-		if shouldProcess(job.ID, n.peerID) {
-			log.Printf("processing job %s", job.ID)
-			// Simulate inference
-			time.Sleep(2 * time.Second)
-			result := fmt.Sprintf("Result for: %s", job.Prompt)
-			n.jobs[job.ID] = result
-			// Publish result
-			resMsg, _ := json.Marshal(map[string]string{
-				"id":     job.ID,
-				"result": result,
-			})
-			n.ps.Publish(jobTopic, resMsg)
-		}
-	}
-}
-
-func shouldProcess(jobID string, self peer.ID) bool {
-	// Simple deterministic assignment: first byte of jobID mod number of peers
-	// In a real network, you'd need a consistent view of peers.
-	// For now, always process – let all nodes process (duplicate) and deduplicate later.
-	// This is simplified for stability.
-	return true
-}
-
-func (n *Node) startHTTPAPI(addr string) {
-	http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"peer_id":  n.peerID.String(),
-			"services": n.services,
-		})
-	})
-	http.HandleFunc("/services", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(n.services)
-	})
-	log.Println("HTTP API listening on", addr)
-	log.Fatal(http.ListenAndServe(addr, nil))
-}
->>>>>>> dd2415e73e5709cd1d39d7e9d747bf898b18e39d
