@@ -1,13 +1,96 @@
 package main
 
 import (
-    "fmt"
-    "net/http"
+	"context"
+	"crypto/rand"
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/libp2p/go-libp2p"
+	"github.com/libp2p/go-libp2p/core/crypto"
+	"github.com/libp2p/go-libp2p/core/host"
+	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/libp2p/go-libp2p/p2p/discovery/mdns"
+	"github.com/libp2p/go-libp2p/p2p/discovery/routing"
+	"github.com/libp2p/go-libp2p/p2p/discovery/util"
+	"github.com/libp2p/go-libp2p/p2p/host/autorelay"
+	"github.com/libp2p/go-libp2p/p2p/net/connmgr"
+	"github.com/libp2p/go-libp2p/p2p/protocol/circuitv2/relay"
+	"github.com/libp2p/go-libp2p/p2p/transport/tcp"
+	"github.com/multiformats/go-multiaddr"
 )
 
 func main() {
-    http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-        fmt.Fprintf(w, "Supercloud node is running")
-    })
-    http.ListenAndServe(":8080", nil)
+	// Create a random key pair for this host
+	priv, _, err := crypto.GenerateEd25519Key(rand.Reader)
+	if err != nil {
+		panic(err)
+	}
+
+	// Create a connection manager with default params
+	cm, err := connmgr.NewConnManager(
+		100, // Lowwater
+		200, // Highwater,
+		connmgr.WithGracePeriod(time.Minute),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	// Build the host
+	h, err := libp2p.New(
+		libp2p.Identity(priv),
+		libp2p.ListenAddrStrings(
+			"/ip4/0.0.0.0/tcp/0",      // TCP
+			"/ip4/0.0.0.0/udp/0/quic", // QUIC
+		),
+		libp2p.Transport(tcp.NewTCPTransport),
+		libp2p.DefaultTransports,
+		libp2p.ConnectionManager(cm),
+		libp2p.NATPortMap(),
+		libp2p.EnableAutoRelay(),
+		libp2p.EnableHolePunching(),
+	)
+	if err != nil {
+		panic(err)
+	}
+	defer h.Close()
+
+	// Print the host's multiaddresses
+	fmt.Printf("Host ID: %s\n", h.ID())
+	for _, addr := range h.Addrs() {
+		fmt.Printf("  %s\n", addr)
+	}
+
+	// Set up mDNS discovery (local network)
+	mdnsService := mdns.NewMdnsService(h, "supercloud", &discoveryNotifee{h: h})
+	if err := mdnsService.Start(); err != nil {
+		panic(err)
+	}
+
+	// Set up DHT discovery for wide area
+	// We'll need a DHT instance – for now just a placeholder
+	fmt.Println("Node started. Press Ctrl-C to stop.")
+
+	// Wait for interrupt
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
+	<-ch
+	fmt.Println("Received interrupt, shutting down...")
+}
+
+type discoveryNotifee struct {
+	h host.Host
+}
+
+func (n *discoveryNotifee) HandlePeerFound(pi peer.AddrInfo) {
+	fmt.Printf("discovered new peer: %s\n", pi.ID)
+	err := n.h.Connect(context.Background(), pi)
+	if err != nil {
+		fmt.Printf("failed to connect to peer %s: %s\n", pi.ID, err)
+	}
 }
