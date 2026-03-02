@@ -3,25 +3,19 @@ package main
 import (
 	"context"
 	"crypto/rand"
-	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/libp2p/go-libp2p/p2p/discovery/mdns"
-	"github.com/libp2p/go-libp2p/p2p/discovery/routing"
-	"github.com/libp2p/go-libp2p/p2p/discovery/util"
-	"github.com/libp2p/go-libp2p/p2p/host/autorelay"
 	"github.com/libp2p/go-libp2p/p2p/net/connmgr"
-	"github.com/libp2p/go-libp2p/p2p/protocol/circuitv2/relay"
 	"github.com/libp2p/go-libp2p/p2p/transport/tcp"
-	"github.com/multiformats/go-multiaddr"
 )
 
 func main() {
@@ -31,10 +25,10 @@ func main() {
 		panic(err)
 	}
 
-	// Create a connection manager with default params
+	// Create a connection manager
 	cm, err := connmgr.NewConnManager(
 		100, // Lowwater
-		200, // Highwater,
+		200, // Highwater
 		connmgr.WithGracePeriod(time.Minute),
 	)
 	if err != nil {
@@ -52,8 +46,6 @@ func main() {
 		libp2p.DefaultTransports,
 		libp2p.ConnectionManager(cm),
 		libp2p.NATPortMap(),
-		libp2p.EnableAutoRelay(),
-		libp2p.EnableHolePunching(),
 	)
 	if err != nil {
 		panic(err)
@@ -72,8 +64,6 @@ func main() {
 		panic(err)
 	}
 
-	// Set up DHT discovery for wide area
-	// We'll need a DHT instance – for now just a placeholder
 	fmt.Println("Node started. Press Ctrl-C to stop.")
 
 	// Wait for interrupt
