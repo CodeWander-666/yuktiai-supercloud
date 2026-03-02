@@ -1,36 +1,17 @@
-name: Build
-
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-jobs:
-  build:
+  build-android:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        goos: [linux, windows, darwin]
-        goarch: [amd64, arm64]
-        exclude:
-          - goos: windows
-            goarch: arm64
     steps:
     - uses: actions/checkout@v4
-
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
         go-version: '1.21'
-
-    - name: Build
+    - name: Build for Android
       run: |
         mkdir -p dist
-        GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o dist/supercloud-node-${{ matrix.goos }}-${{ matrix.goarch }} .
-
-    - name: Upload artifacts
+        GOOS=android GOARCH=arm64 go build -o dist/supercloud-node-android-arm64 .
+    - name: Upload Android artifact
       uses: actions/upload-artifact@v4
       with:
-        name: supercloud-node-${{ matrix.goos }}-${{ matrix.goarch }}
-        path: dist/supercloud-node-${{ matrix.goos }}-${{ matrix.goarch }}
+        name: supercloud-node-android-arm64
+        path: dist/supercloud-node-android-arm64
