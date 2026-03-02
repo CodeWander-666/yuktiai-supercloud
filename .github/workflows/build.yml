@@ -10,52 +10,23 @@ jobs:
   build-windows:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.21'
-<<<<<<< HEAD
+      - uses: actions/checkout@v4
 
-    - name: Tidy dependencies
-      run: go mod tidy
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
 
-    - name: Build for Windows
-      run: |
-        mkdir -p dist
-        GOOS=windows GOARCH=amd64 go build -o dist/supercloud-node-windows-amd64.exe .
+      - name: Tidy dependencies
+        run: go mod tidy
 
-    - name: Upload Windows artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: supercloud-node-windows-amd64
-        path: dist/supercloud-node-windows-amd64.exe
-=======
-    - name: Build
-      run: |
-        mkdir -p dist
-        GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o dist/supercloud-node-${{ matrix.goos }}-${{ matrix.goarch }} .
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: supercloud-node-${{ matrix.goos }}-${{ matrix.goarch }}
-        path: dist/supercloud-node-${{ matrix.goos }}-${{ matrix.goarch }}
+      - name: Build for Windows
+        run: |
+          mkdir -p dist
+          GOOS=windows GOARCH=amd64 go build -o dist/supercloud-node-windows-amd64.exe .
 
-  build-android:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.21'
-    - name: Build for Android
-      run: |
-        mkdir -p dist
-        GOOS=android GOARCH=arm64 go build -o dist/supercloud-node-android-arm64 .
-    - name: Upload Android artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: supercloud-node-android-arm64
-        path: dist/supercloud-node-android-arm64
->>>>>>> dd2415e73e5709cd1d39d7e9d747bf898b18e39d
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supercloud-node-windows-amd64
+          path: dist/supercloud-node-windows-amd64.exe
