@@ -7,15 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  build-windows:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        goos: [linux, windows, darwin]
-        goarch: [amd64, arm64]
-        exclude:
-          - goos: windows
-            goarch: arm64
     steps:
     - uses: actions/checkout@v4
 
@@ -24,13 +17,16 @@ jobs:
       with:
         go-version: '1.21'
 
-    - name: Build
+    - name: Tidy dependencies
+      run: go mod tidy
+
+    - name: Build for Windows
       run: |
         mkdir -p dist
-        GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o dist/supercloud-node-${{ matrix.goos }}-${{ matrix.goarch }} .
+        GOOS=windows GOARCH=amd64 go build -o dist/supercloud-node-windows-amd64.exe .
 
-    - name: Upload artifacts
+    - name: Upload Windows artifact
       uses: actions/upload-artifact@v4
       with:
-        name: supercloud-node-${{ matrix.goos }}-${{ matrix.goarch }}
-        path: dist/supercloud-node-${{ matrix.goos }}-${{ matrix.goarch }}
+        name: supercloud-node-windows-amd64
+        path: dist/supercloud-node-windows-amd64.exe
